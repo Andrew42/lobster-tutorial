@@ -10,13 +10,14 @@ from lobster.core import *
 
 GIT_REPO_DIR = subprocess.check_output(['git','rev-parse','--show-toplevel']).strip()
 
-tstamp1 = dt.now().strftime('%Y%m%d_%H%M')
-tstamp2 = dt.now().strftime('%Y_%m_%d')
-tstamp3 = dt.now().strftime('%Y-%m-%d_%H%M')
+tstamp1 = datetime.datetime.now().strftime('%Y%m%d_%H%M')
+tstamp2 = datetime.datetime.now().strftime('%Y_%m_%d')
+tstamp3 = datetime.datetime.now().strftime('%Y-%m-%d_%H%M')
 lobster_step = "diceRolling"
 
 ver = "v1"
-tag = "test/testing_{tstamp}".format(tstamp=tstamp3)
+tag = "test/testing_{tstamp}".format(tstamp=tstamp1)
+master_label = "ROLL_ALL_{tstamp}".format(tstamp=tstamp1)
 
 workdir_path = "{path}/{step}/{tag}/{ver}".format(step=lobster_step,tag=tag,ver=ver,path="/tmpscratch/users/$USER")
 plotdir_path = "{path}/{step}/{tag}/{ver}".format(step=lobster_step,tag=tag,ver=ver,path="~/www/lobster")
@@ -67,10 +68,12 @@ wf = []
 output = Workflow(
     label='roll',
     dataset=EmptyDataset(),
+    sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
     category=processing,
     command='python the_job.py',
     unique_arguments=unique_args,
     extra_inputs=extra_inputs,
+    globaltag=False,
     merge_size=-1,
     outputs=['results.json']
 )
