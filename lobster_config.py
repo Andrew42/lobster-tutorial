@@ -56,7 +56,9 @@ merge_resources = Category(
     disk=2900,
 )
 
-# Not all of these files are needed for each workflow, but we include them all anyways
+# When doing a non-CMSSW based lobster job, you will generally need to specify all the non-CMSSW
+#   code required to run your job. Also, not all of these files are needed for each workflow, but
+#   we include them all anyways to make passing to the Workflows() simpler
 extra_inputs = [
     os.path.join(GIT_REPO_DIR,"python/Die.py"),
     os.path.join(GIT_REPO_DIR,"python/the_job.py"),
@@ -65,8 +67,10 @@ extra_inputs = [
 
 dice_str = "20d100"
 rolls_per_job = int(100e3)
-njobs = 10
+njobs = 50
 
+# Since we use an EmptyDataset() we need to specify the unique set of arguments that will get passed
+#   to each indvidual job.
 unique_args = []
 for x in range(njobs):
     new_args = "{dice} {rolls:d} {seed:d}".format(dice=dice_str,rolls=rolls_per_job,seed=random.randint(1e3,1e9))
@@ -87,6 +91,9 @@ roll = Workflow(
     outputs=['results.json']
 )
 
+# This is kind of extreme overkill, since we could've specified this merging in the previous workflow,
+#   but is meant to illustrate how you can still chain together multiple workflows just like in a
+#   CMSSW based lobster workflow
 merge_rolls = Workflow(
     label='merge',
     dataset=ParentDataset(parent=roll,units_per_task=10),
