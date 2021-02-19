@@ -42,16 +42,25 @@ storage = StorageConfiguration(
     disable_input_streaming = True
 )
 
-processing = Category(
+roll_resources = Category(
     name='processing',
     cores=1,
     memory=2500,
     disk=2900,
 )
 
+merge_resources = Category(
+    name='processing',
+    cores=1,
+    memory=2500,
+    disk=2900,
+)
+
+# Not all of these files are needed for each workflow, but we include them all anyways
 extra_inputs = [
     os.path.join(GIT_REPO_DIR,"python/Die.py"),
-    os.path.join(GIT_REPO_DIR,"python/the_job.py")
+    os.path.join(GIT_REPO_DIR,"python/the_job.py"),
+    os.path.join(GIT_REPO_DIR,"python/merge_results.py")
 ]
 
 dice_str = "20d100"
@@ -65,11 +74,11 @@ for x in range(njobs):
 
 wf = []
 
-output = Workflow(
+roll = Workflow(
     label='roll',
     dataset=EmptyDataset(),
     sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
-    category=processing,
+    category=roll_resources,
     command='python the_job.py',
     unique_arguments=unique_args,
     extra_inputs=extra_inputs,
@@ -78,7 +87,20 @@ output = Workflow(
     outputs=['results.json']
 )
 
-wf.extend([output])
+merge_rolls = Workflow(
+    label='merge',
+    dataset=ParentDataset(parent=roll,units_per_task=10),
+    sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
+    category=merge_resources,
+    cleanup_input=False,
+    command='python merge_results.py @inputfiles',
+    extra_inputs=extra_inputs,
+    globaltag=False,
+    merge_size=-1,
+    outputs=['results.json']
+)
+
+wf.extend([roll,merge_rolls])
 
 config = Config(
     label=master_label,
