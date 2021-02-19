@@ -83,7 +83,7 @@ dataset=Dataset(
 
 # When doing a non-CMSSW based lobster job, you will generally need to specify all the non-CMSSW
 #   code required to run your job. Also, not all of these files are needed for each workflow, but
-#   we include them all anyways to make passing to the Workflows() simpler
+#   we include them all anyways to make passing to the Workflow() objects simpler
 extra_inputs = [
     os.path.join(GIT_REPO_DIR,"python/Die.py"),
     os.path.join(GIT_REPO_DIR,"python/the_job.py"),
@@ -104,9 +104,9 @@ roll = Workflow(
     outputs=['results.json']
 )
 
-# This is kind of extreme overkill, since we could've specified this merging in the previous workflow,
-#   but is meant to illustrate how you can still chain together multiple workflows just like in a
-#   CMSSW based lobster workflow
+# This is kind of extreme overkill, since we could've specified this merging in the previous workflow
+#   (and which we do in this workflow anyways), but is meant to illustrate how you can still chain
+#   together multiple workflows just like in a CMSSW based lobster workflow
 merge_rolls = Workflow(
     label='merge',
     dataset=ParentDataset(parent=roll,units_per_task=10),
@@ -116,7 +116,12 @@ merge_rolls = Workflow(
     command='python merge_results.py',
     extra_inputs=extra_inputs,
     globaltag=False,
-    merge_size=-1,
+    # This is really kind of redundant, but is just to showcase how to use a custom merge command.
+    #   The exact size here doesn't matter very much, since the outputs all pretty much have the same
+    #   static size, if you want the final output to all get merged down into a single file just make
+    #   the merge_size significantly larger than w/e the size of your output files is.
+    merge_size='1G',
+    merge_command='python merge_results.py',
     outputs=['results.json']
 )
 
