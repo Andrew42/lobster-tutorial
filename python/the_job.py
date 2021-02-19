@@ -11,20 +11,23 @@ args = parser.parse_args()
 
 results = {}
 nfiles = len(args.infiles)
-padding = math.floor(math.log(nfiles,10)) + 1
+padding = int(math.floor(math.log(nfiles,10)) + 1)
 for idx,fn in enumerate(args.infiles):
     fn = fn.replace("file:","")
     # Python string formatting is great!
-    print "[{idx:0>{pad}.0f}/{total:.0f}] Processing {fn}:".format(pad=padding,idx=idx,total=nfiles,fn=fn)
+    print "[{idx:0>{pad}}/{total:d}] Processing {fn}".format(pad=padding,idx=idx+1,total=nfiles,fn=fn)
     with open(fn,'r') as inf:
         dicestr, nrolls, seed = inf.readline().strip().split()
 
-        random.seed(int(seed))
         dice = Die(dicestr)
+        nrolls = int(nrolls)
+        seed   = int(seed)
+
+        random.seed(seed)
 
         last_update = 0.0
-        for i in range(int(nrolls)):
-            progress = float(i) / args.nrolls
+        for i in range(nrolls):
+            progress = float(i) / nrolls
             if (progress - last_update) > 0.05:
                 print "\tRolling... {:.1f}%".format(progress*100)
                 last_update = progress

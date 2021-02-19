@@ -61,16 +61,24 @@ rolls_per_job = int(100e3)
 njobs = 50
 
 # This is just to generate some input files that we can run over
+# IMPORTANT NOTE:
+#   This generates dummy input files and stores them in a directory located under the parent GIT repo,
+#   which means that all of your lobster workers will be trying to access that same location! This
+#   might have some nasty consequences for your home area (or wherever you cloned the git repo). However,
+#   you will normally be running over files stored somewhere else, e.g. on hadoop, but you should be
+#   aware of this difference when working off of this toy example!
+input_dir = "test_inputs_{}".format(tstamp1)
+os.mkdir(os.path.join(GIT_REPO_DIR,"inputs",input_dir))
 for i in range(njobs):
-    input_fn = os.path.join(GIT_REPO_DIR,"inputs","params_{}_{:d}.txt".format(tstamp1,i))
+    input_fn = os.path.join(GIT_REPO_DIR,"inputs",input_dir,"params_{:d}.txt".format(i))
     with open(input_fn,'w') as f:
         job_params = "{dice} {rolls:d} {seed:d}\n".format(dice=dice_str,rolls=rolls_per_job,seed=random.randint(1e3,1e9))
         f.write(job_params)
 
 dataset=Dataset(
-    files=['inputs'],   # This needs to be relative to the input path specified in your StorageConfiguration
+    files=['inputs/{}'.format(input_dir)],   # This needs to be relative to the input path specified in your StorageConfiguration
     files_per_task=1,
-    patterns=['params_{}_*.txt'.format(tstamp1)]
+    patterns=['*.txt']
 )
 
 # When doing a non-CMSSW based lobster job, you will generally need to specify all the non-CMSSW
@@ -90,7 +98,6 @@ roll = Workflow(
     sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
     category=roll_resources,
     command='python the_job.py @inputfiles',
-    unique_arguments=unique_args,
     extra_inputs=extra_inputs,
     globaltag=False,
     merge_size=-1,
