@@ -8,8 +8,7 @@ args = parser.parse_args()
 results = {}
 for fn in args.infiles:
     # This is to chop off the the leading "file:" if present
-    if len(fn.split(':')) > 1:
-        fn = ''.join(fn.split(':')[1:])
+    fn = fn.replace("file:","")
     with open(fn,'r') as inf:
         obj = json.load(inf)
         for k,v in obj.iteritems():

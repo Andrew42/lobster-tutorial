@@ -56,6 +56,23 @@ merge_resources = Category(
     disk=2900,
 )
 
+dice_str = "20d100"
+rolls_per_job = int(100e3)
+njobs = 50
+
+# This is just to generate some input files that we can run over
+for i in range(njobs):
+    input_fn = os.path.join(GIT_REPO_DIR,"inputs","params_{}_{:d}.txt".format(tstamp1,i))
+    with open(input_fn,'w') as f:
+        job_params = "{dice} {rolls:d} {seed:d}\n".format(dice=dice_str,rolls=rolls_per_job,seed=random.randint(1e3,1e9))
+        f.write(job_params)
+
+dataset=Dataset(
+    files=['inputs'],   # This needs to be relative to the input path specified in your StorageConfiguration
+    files_per_task=1,
+    patterns=['params_{}_*.txt'.format(tstamp1)]
+)
+
 # When doing a non-CMSSW based lobster job, you will generally need to specify all the non-CMSSW
 #   code required to run your job. Also, not all of these files are needed for each workflow, but
 #   we include them all anyways to make passing to the Workflows() simpler
@@ -65,25 +82,14 @@ extra_inputs = [
     os.path.join(GIT_REPO_DIR,"python/merge_results.py")
 ]
 
-dice_str = "20d100"
-rolls_per_job = int(100e3)
-njobs = 50
-
-# Since we use an EmptyDataset() we need to specify the unique set of arguments that will get passed
-#   to each indvidual job.
-unique_args = []
-for x in range(njobs):
-    new_args = "{dice} {rolls:d} {seed:d}".format(dice=dice_str,rolls=rolls_per_job,seed=random.randint(1e3,1e9))
-    unique_args += [new_args]
-
 wf = []
 
 roll = Workflow(
     label='roll',
-    dataset=EmptyDataset(),
+    dataset=dataset,
     sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
     category=roll_resources,
-    command='python the_job.py',
+    command='python the_job.py @inputfiles',
     unique_arguments=unique_args,
     extra_inputs=extra_inputs,
     globaltag=False,
@@ -100,7 +106,7 @@ merge_rolls = Workflow(
     sandbox=cmssw.Sandbox(release=os.environ["CMSSW_BASE"]),
     category=merge_resources,
     cleanup_input=False,
-    command='python merge_results.py @inputfiles',
+    command='python merge_results.py',
     extra_inputs=extra_inputs,
     globaltag=False,
     merge_size=-1,
