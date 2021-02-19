@@ -16,7 +16,12 @@ random.seed(args.seed)
 dice = Die(args.dicestr)
 
 results = {}
+last_update = 0.0
 for i in range(args.nrolls):
+    progress = float(i) / args.nrolls
+    if (progress - last_update) > 0.05:
+        print "Rolling... {:.1f}%".format(progress*100)
+        last_update = progress
     x = dice.roll()
     if not results.has_key(x):
         results[x] = 0
@@ -24,3 +29,4 @@ for i in range(args.nrolls):
 
 f = open("results.json","w")
 json.dump(results,f,sort_keys=True)
+f.close()
