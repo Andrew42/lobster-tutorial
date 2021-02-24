@@ -85,7 +85,7 @@ dataset=Dataset(
 #   code required to run your job. Also, not all of these files are needed for each workflow, but
 #   we include them all anyways to make passing to the Workflow() objects simpler
 extra_inputs = [
-    os.path.join(GIT_REPO_DIR,"python/Die.py"),
+    os.path.join(GIT_REPO_DIR,"python/Dice.py"),
     os.path.join(GIT_REPO_DIR,"python/the_job.py"),
     os.path.join(GIT_REPO_DIR,"python/merge_results.py")
 ]

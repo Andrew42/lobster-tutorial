@@ -3,7 +3,7 @@ import random
 import json
 import math
 
-from Die import Die
+from Dice import Die
 
 parser = argparse.ArgumentParser(description='roll some dice')
 parser.add_argument('infiles',type=str, nargs='+',help='The file with the rolling parameters')
