@@ -99,6 +99,9 @@ roll = Workflow(
     category=roll_resources,
     command='python the_job.py @inputfiles',
     extra_inputs=extra_inputs,
+    # Setting globaltag to false here is actually important, as it avoids triggering the autosense
+    #   of the CMSSW release, which is problematic if your code isn't located inside of a CMSSW
+    #   release.
     globaltag=False,
     merge_size=-1,
     outputs=['results.json']
